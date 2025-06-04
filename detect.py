@@ -62,8 +62,7 @@ model_facenet.to(device)
 trans = transforms.Compose([
     transforms.Resize((112, 112)),
     transforms.ToTensor(),
-    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-])
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 
 # TODO move to utils
 def prep_image(img, inp_dim):
