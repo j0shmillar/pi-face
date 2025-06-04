@@ -1,0 +1,7 @@
+torch
+torchvision
+easydict
+opencv_python
+numpy
+scipy
+Pillow
