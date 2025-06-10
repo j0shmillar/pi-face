@@ -44,7 +44,7 @@ picam2 = Picamera2()
 picam2.configure(picam2.create_video_configuration(main={"format": 'RGB888', "size": (640, 480)}))
 picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
 picam2.start()
-time.sleep(1.0) 
+time.sleep(1.0)
 
 saved_model = './ArcFace/model/068.pth'
 name_list = os.listdir('./users')
@@ -64,7 +64,6 @@ trans = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
 
-# TODO move to utils
 def prep_image(img, inp_dim):
     img_resized = cv2.resize(img, (inp_dim, inp_dim))
     img_rgb = img_resized[:, :, ::-1].transpose((2, 0, 1)).copy()
@@ -73,7 +72,7 @@ def prep_image(img, inp_dim):
 
 def write(x, img):
     if np.isnan(x[1:5]).any() or np.isinf(x[1:5]).any():
-        return img  # skip inv box
+        return img
     c1 = tuple(x[1:3].astype(int))
     c2 = tuple(x[3:5].astype(int))
     cls = int(x[-1])
@@ -153,11 +152,17 @@ while True:
         img_pil = Image.fromarray(color_image)
         bboxes, _ = detect_faces(img_pil)
         if len(bboxes) == 0:
-            print('No ...') # TODO
+            print('No face detected')
         else:
             for bbox in bboxes:
-                loc_x_y = [bbox[2], bbox[1]]
-                person_img = color_image[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])].copy()
+                x1 = max(0, int(bbox[0]))
+                y1 = max(0, int(bbox[1]))
+                x2 = min(color_image.shape[1], int(bbox[2]))
+                y2 = min(color_image.shape[0], int(bbox[3]))
+                if x2 <= x1 or y2 <= y1:
+                    continue
+                loc_x_y = [x2, y1]
+                person_img = color_image[y1:y2, x1:x2].copy()
                 feature = np.squeeze(get_feature(person_img, model_facenet, trans, device))
                 cos_distance = cosin_metric(total_features, feature)
                 index = np.argmax(cos_distance)
@@ -165,7 +170,7 @@ while True:
                     continue
                 name = name_list[index]
                 orig_im = draw_ch_zn(orig_im, name, font, loc_x_y)
-                cv2.rectangle(orig_im, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 0, 255), 2)
+                cv2.rectangle(orig_im, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
     if output is not None and len(output) > 0:
         label_pos = (int(output[0][1]) + 100, int(output[0][2]) + 20)
@@ -178,3 +183,4 @@ while True:
 
 picam2.stop()
 cv2.destroyAllWindows()
+
