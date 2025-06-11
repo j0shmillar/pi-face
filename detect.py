@@ -85,7 +85,7 @@ def write(x, img):
     cv2.putText(img, label, (c1[0], c1[1] + t_size[1] + 4), cv2.FONT_HERSHEY_PLAIN, 1, [225, 255, 255], 1)
     return img
 
-def sellect_person(output):
+def select_person(output):
     return [i for i in output if i[-1] == 0]
 
 def to_xy(outputs):
@@ -132,7 +132,7 @@ while True:
         output[:, [1, 3]] *= color_image.shape[1]
         output[:, [2, 4]] *= color_image.shape[0]
         output = output.cpu().numpy()
-        output = sellect_person(output)
+        output = select_person(output)
         output = np.array(output)
         output_update = output
     else:
